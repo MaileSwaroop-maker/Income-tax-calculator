@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Income Tax Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --danger-color: #e74c3c;
+            --bg-color: #ecf0f1;
+            --card-bg-color: #ffffff;
+            --text-color: #34495e;
+            --border-color: #bdc3c7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg-color);
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .regime-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .regime-selector button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background-color: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            color: var(--text-color);
+        }
+
+        .regime-selector button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .regime-selector button:not(.active):hover {
+            background-color: #f8f9f9;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        #deductions-container {
+            background-color: #f8f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        #deductions-container h3 {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .button-group button {
+            flex: 1;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            color: white;
+        }
+
+        #calculateBtn { background-color: var(--secondary-color); }
+        #calculateBtn:hover { background-color: #2980b9; transform: translateY(-2px); }
+        #resetBtn { background-color: var(--danger-color); }
+        #resetBtn:hover { background-color: #c0392b; transform: translateY(-2px); }
+
+        #result-card {
+            margin-top: 30px;
+            background-color: #f8f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        #result-card h2 { margin-bottom: 20px; }
+        #result-card p {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+        #result-card p span { font-weight: 600; }
+        #result-card .total-tax {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .explanation {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #eaf2f8;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .explanation h3 { color: var(--primary-color); margin-bottom: 10px; }
+        .explanation ul { list-style-position: inside; padding-left: 10px; }
+        .explanation li { margin-bottom: 8px; }
+
+        .hidden { display: none; }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .button-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Income Tax Calculator</h1>
+        <p class="subtitle">For FY 2023-24 (AY 2024-25)</p>
+
+        <div class="regime-selector">
+            <button id="newRegimeBtn" class="active">New Regime (Default)</button>
+            <button id="oldRegimeBtn">Old Regime</button>
+        </div>
+
+        <div class="input-area">
+            <div class="input-group">
+                <label for="income">Your Gross Annual Income (₹)</label>
+                <input type="number" id="income" placeholder="e.g., 1200000">
+            </div>
+
+            <div id="deductions-container" class="hidden">
+                <h3>Enter Deductions (for Old Regime)</h3>
+                <div class="input-group">
+                    <label for="deduction80c">80C Deductions (e.g., PPF, ELSS, Life Insurance). Max: ₹1,50,000</label>
+                    <input type="number" id="deduction80c" placeholder="e.g., 150000">
+                </div>
+                <div class="input-group">
+                    <label for="deduction80d">80D - Medical Insurance Premium. Max: ₹25,000 (or ₹50,000 for senior citizens)</label>
+                    <input type="number" id="deduction80d" placeholder="e.g., 25000">
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="calculateBtn">Calculate Tax</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+
+        <div id="result-card" class="hidden">
+            <h2 id="result-title">Tax Calculation</h2>
+            <p>Gross Income: <span id="resultGrossIncome"></span></p>
+            <p>Total Deductions: <span id="resultDeductions"></span></p>
+            <p>Taxable Income: <span id="resultTaxableIncome"></span></p>
+            <hr>
+            <p>Income Tax: <span id="resultTax"></span></p>
+            <p>Surcharge: <span id="resultSurcharge"></span></p>
+            <p>Health & Edu Cess (4%): <span id="resultCess"></span></p>
+            <p class="total-tax">Total Tax Payable: <span id="resultTotalTax"></span></p>
+        </div>
+
+        <div class="explanation">
+            <h3>Old vs. New Regime: Key Differences</h3>
+            <ul>
+                <li><strong>Old Regime:</strong> Allows you to claim various deductions and exemptions (like 80C, 80D, HRA). The tax slabs have higher rates. It is beneficial if you have significant investments and expenses to claim.</li>
+                <li><strong>New Regime:</strong> Offers lower tax rates but you cannot claim most of the common deductions and exemptions. It includes a Standard Deduction of ₹50,000 and has a higher basic exemption limit. It is the default regime and simpler for those with fewer investments.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const incomeInput = document.getElementById('income');
+            const deduction80cInput = document.getElementById('deduction80c');
+            const deduction80dInput = document.getElementById('deduction80d');
+            const oldRegimeBtn = document.getElementById('oldRegimeBtn');
+            const newRegimeBtn = document.getElementById('newRegimeBtn');
+            const deductionsContainer = document.getElementById('deductions-container');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const resultCard = document.getElementById('result-card');
+
+            let currentRegime = 'new'; // 'new' or 'old'
+
+            // --- Event Listeners ---
+            oldRegimeBtn.addEventListener('click', () => setRegime('old'));
+            newRegimeBtn.addEventListener('click', () => setRegime('new'));
+            calculateBtn.addEventListener('click', calculateAndDisplayTax);
+            resetBtn.addEventListener('click', resetCalculator);
+
+            // --- Functions ---
+            function setRegime(regime) {
+                currentRegime = regime;
+                oldRegimeBtn.classList.toggle('active', regime === 'old');
+                newRegimeBtn.classList.toggle('active', regime === 'new');
+                deductionsContainer.classList.toggle('hidden', regime === 'new');
+                resultCard.classList.add('hidden');
+            }
+
+            function formatCurrency(amount) {
+                return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+            }
+
+            function getInputVal(element) {
+                return parseFloat(element.value) || 0;
+            }
+
+            function calculateAndDisplayTax() {
+                const grossIncome = getInputVal(incomeInput);
+                if (grossIncome <= 0) {
+                    alert("Please enter a valid Gross Annual Income.");
+                    return;
+                }
+
+                let taxDetails;
+                if (currentRegime === 'old') {
+                    const deduction80c = Math.min(getInputVal(deduction80cInput), 150000);
+                    const deduction80d = Math.min(getInputVal(deduction80dInput), 25000); // Simplified max
+                    taxDetails = calculateOldRegimeTax(grossIncome, deduction80c + deduction80d);
+                } else {
+                    taxDetails = calculateNewRegimeTax(grossIncome);
+                }
+
+                displayResults(taxDetails);
+            }
+
+            function calculateOldRegimeTax(grossIncome, otherDeductions) {
+                const standardDeduction = 50000;
+                const totalDeductions = standardDeduction + otherDeductions;
+                const taxableIncome = Math.max(0, grossIncome - totalDeductions);
+                let tax = 0;
+
+                if (taxableIncome > 1000000) {
+                    tax = 112500 + (taxableIncome - 1000000) * 0.30;
+                } else if (taxableIncome > 500000) {
+                    tax = 12500 + (taxableIncome - 500000) * 0.20;
+                } else if (taxableIncome > 250000) {
+                    tax = (taxableIncome - 250000) * 0.05;
+                }
+
+                // Rebate u/s 87A
+                if (taxableIncome <= 500000) {
+                    tax = 0;
+                }
+
+                return calculateFinalTax(grossIncome, totalDeductions, taxableIncome, tax, 'Old Regime');
+            }
+
+            function calculateNewRegimeTax(grossIncome) {
+                const standardDeduction = 50000;
+                const taxableIncome = Math.max(0, grossIncome - standardDeduction);
+                let tax = 0;
+
+                // Rebate u/s 87A makes tax zero up to 7L, so calculation only starts above that
+                if (taxableIncome > 1500000) {
+                    tax = 150000 + (taxableIncome - 1500000) * 0.30;
+                } else if (taxableIncome > 1200000) {
+                    tax = 90000 + (taxableIncome - 1200000) * 0.20;
+                } else if (taxableIncome > 900000) {
+                    tax = 45000 + (taxableIncome - 900000) * 0.15;
+                } else if (taxableIncome > 600000) {
+                    tax = 15000 + (taxableIncome - 600000) * 0.10;
+                } else if (taxableIncome > 300000) {
+                    tax = (taxableIncome - 300000) * 0.05;
+                }
+
+                // Rebate u/s 87A
+                if (taxableIncome <= 700000) {
+                    tax = 0;
+                }
+
+                return calculateFinalTax(grossIncome, standardDeduction, taxableIncome, tax, 'New Regime');
+            }
+
+            function calculateFinalTax(grossIncome, totalDeductions, taxableIncome, tax, regimeName) {
+                let surcharge = 0;
+                if (grossIncome > 10000000) { // 1 Crore
+                    surcharge = tax * 0.15;
+                } else if (grossIncome > 5000000) { // 50 Lakh
+                    surcharge = tax * 0.10;
+                }
+
+                const cess = (tax + surcharge) * 0.04;
+                const totalTax = tax + surcharge + cess;
+
+                return { grossIncome, totalDeductions, taxableIncome, tax, surcharge, cess, totalTax, regimeName };
+            }
+
+            function displayResults(details) {
+                document.getElementById('result-title').textContent = `Tax Calculation (${details.regimeName})`;
+                document.getElementById('resultGrossIncome').textContent = formatCurrency(details.grossIncome);
+                document.getElementById('resultDeductions').textContent = formatCurrency(details.totalDeductions);
+                document.getElementById('resultTaxableIncome').textContent = formatCurrency(details.taxableIncome);
+                document.getElementById('resultTax').textContent = formatCurrency(details.tax);
+                document.getElementById('resultSurcharge').textContent = formatCurrency(details.surcharge);
+                document.getElementById('resultCess').textContent = formatCurrency(details.cess);
+                document.getElementById('resultTotalTax').textContent = formatCurrency(details.totalTax);
+                resultCard.classList.remove('hidden');
+            }
+
+            function resetCalculator() {
+                incomeInput.value = '';
+                deduction80cInput.value = '';
+                deduction80dInput.value = '';
+                resultCard.classList.add('hidden');
+                setRegime('new'); // Reset to default regime
+            }
+        });
+    </script>
+</body>
+</html>
